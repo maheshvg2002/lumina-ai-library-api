@@ -29,8 +29,8 @@ services:
     ports:
       - "11434:11434"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434"]
-      interval: 5s
+      test: ["CMD", "ollama", "-f", "http://localhost:11434"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
@@ -38,8 +38,8 @@ services:
   init-ollama:
     image: curlimages/curl
     depends_on:
-      ollama:
-        condition: service_healthy
+      - db
+      - ollama
     command: >
       sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"tinyllama\"}'"
 
