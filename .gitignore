@@ -1,0 +1,17 @@
+# Ignore the massive virtual environment
+venv/
+.venv/
+env/
+
+# Ignore sensitive environment variables
+.env
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore uploaded book files (keep the repo clean)
+uploads/
+
+# Ignore database files
+*.sqlite3

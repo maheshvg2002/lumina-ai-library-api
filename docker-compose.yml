@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 1. Database Service
+  db:
+    image: postgres:15
+    container_name: lumina_db
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Postgres@12
+      - POSTGRES_DB=lumina_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lumina_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Local LLM Service (Ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lumina_ai
+    volumes:
+      - ollama_storage:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. Model Puller (Runs once to download Llama 3)
+  init-ollama:
+    image: curlimages/curl
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command: >
+      sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"tinyllama\"}'"
+
+  # 4. The API (Your Code)
+  api:
+    build: .
+    container_name: lumina_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:Postgres@12@db:5432/lumina_db
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  ollama_storage:
