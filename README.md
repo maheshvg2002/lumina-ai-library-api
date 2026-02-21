@@ -1,6 +1,6 @@
 # LuminaLib - Intelligent Library System
 
-LuminaLib is a next-generation, content-aware library system built for the JKTech Senior Backend & GenAI Engineer assessment. It moves beyond standard metadata CRUD operations by managing actual book files, utilizing a local LLM (via Ollama) to synthesize reader sentiment, and employing machine learning to drive personalized book discovery.
+LuminaLib is a next-generation, content-aware library system. It moves beyond standard metadata CRUD operations by managing actual book files, utilizing a local LLM (via Ollama) to synthesize reader sentiment, and employing machine learning to drive personalized book discovery.
 
 ## Tech Stack
 * **Backend:** Python 3.10, FastAPI, SQLAlchemy, Alembic
