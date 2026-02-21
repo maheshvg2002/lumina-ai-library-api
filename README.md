@@ -16,13 +16,14 @@ The application is fully containerized and designed to start with a single comma
 
 
 -  git clone <your-repository-url>
-   cd luminalib
+
+-  cd luminalib
 
 
 2. **Start the application:**
-   \`\`\`
-   docker compose up --build
-   \`\`\`
+  
+ - docker compose up --build
+  
    *(Note: On the very first run, the `init-ollama` container will download the LLM weights. This may take a few minutes depending on your internet connection. The API will start automatically once the database is healthy).*
 
 3. **Access the API Documentation:**
