@@ -7,13 +7,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Postgres@12
-      - POSTGRES_DB=lumina_db
+      # These pull directly from your .env file
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d lumina_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -32,33 +33,34 @@ services:
       timeout: 5s
       retries: 5
 
-  # 3. Model Puller (Runs once to download Llama 3)
+  # 3. Model Puller
   init-ollama:
     image: curlimages/curl
     depends_on:
-      - db
-      - ollama
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
     command: >
       sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"tinyllama\"}'"
 
-  # 4. The API (Your Code)
+  # 4. The API (FastAPI)
   api:
     build: .
     container_name: lumina_api
     restart: on-failure
+    # THIS LINE LOADS YOUR SECRET_KEY AND OTHER VARS INTO THE CONTAINER
+    env_file: .env 
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:Postgres%4012@db:5432/lumina_db
+      # Constructing the URL dynamically using encoded credentials from .env
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - OLLAMA_BASE_URL=http://ollama:11434
-      # ADD THESE 4 LINES BELOW:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Postgres@12
       - POSTGRES_SERVER=db
-      - POSTGRES_DB=lumina_db
     depends_on:
       db:
         condition: service_healthy
