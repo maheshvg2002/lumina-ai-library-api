@@ -54,7 +54,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:Postgres@12@db:5432/lumina_db
+      - DATABASE_URL=postgresql://postgres:Postgres%4012@db:5432/lumina_db
       - OLLAMA_BASE_URL=http://ollama:11434
       # ADD THESE 4 LINES BELOW:
       - POSTGRES_USER=postgres
