@@ -1,30 +1,39 @@
-import shutil
 import uuid
 from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
+
+from app.api.dependencies import get_llm_service, get_storage_service
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+)
 from sqlalchemy.orm import Session
 
-from app.db.session import get_db
-from app.models.sql_models import Book, User
-from app.domain import schemas
 from app.api.v1.endpoints.auth import get_current_user
-from app.infrastructure.services.ollama_service import OllamaService
+
+# --- CLEAN ARCHITECTURE IMPORTS ---
+from app.core.interfaces import LLMProvider, StorageProvider
+from app.db.session import get_db
+from app.domain import schemas
+from app.models.sql_models import Book, User
 
 router = APIRouter()
-llm_service = OllamaService()
-UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+
 
 # --- BACKGROUND TASK ---
-async def process_ai_summary(book_id: int, file_path: str, db_gen):
+async def process_ai_summary(book_id: int, file_path: str, db_gen, llm: LLMProvider):
     # 1. Read the uploaded file
     try:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
-        
-        # 2. Call Ollama
-        summary = await llm_service.generate_summary(content)
-        
+
+        # 2. Call the injected LLM Provider (It doesn't know if it's Ollama or OpenAI!)
+        summary = await llm.generate_summary(content)
+
         # 3. Update Database
         db = next(db_gen())
         book = db.query(Book).filter(Book.id == book_id).first()
@@ -34,7 +43,9 @@ async def process_ai_summary(book_id: int, file_path: str, db_gen):
     except Exception as e:
         print(f"Error in background AI task: {e}")
 
+
 # --- ENDPOINTS ---
+
 
 @router.post("/", response_model=schemas.BookResponse)
 async def upload_book(
@@ -44,32 +55,41 @@ async def upload_book(
     isbn: str = Form(None),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    # --- INJECTING OUR SERVICES ---
+    storage: StorageProvider = Depends(get_storage_service),
+    llm: LLMProvider = Depends(get_llm_service),
 ):
     if file.content_type not in ["application/pdf", "text/plain"]:
         raise HTTPException(status_code=400, detail="Only PDF or TXT allowed")
 
+    # Generate a unique filename safely
     file_extension = Path(file.filename).suffix
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = UPLOAD_DIR / unique_filename
 
-    with file_path.open("wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Read the file bytes into memory
+    content = await file.read()
+
+    # Delegate the actual saving to the injected Storage Provider
+    file_path = await storage.save_file(unique_filename, content)
 
     new_book = Book(
         title=title,
         author=author,
         isbn=isbn,
-        file_path=str(file_path)
+        file_path=str(file_path),  # We get the path back from the storage service
     )
     db.add(new_book)
     db.commit()
     db.refresh(new_book)
 
-    # Trigger the AI Summary in the background
-    background_tasks.add_task(process_ai_summary, new_book.id, str(file_path), get_db)
+    # Trigger the AI Summary in the background, passing the injected LLM
+    background_tasks.add_task(
+        process_ai_summary, new_book.id, str(file_path), get_db, llm
+    )
 
     return new_book
+
 
 @router.get("/", response_model=list[schemas.BookResponse])
 def list_books(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):

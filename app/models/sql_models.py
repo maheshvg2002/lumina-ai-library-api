@@ -1,7 +1,19 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, Float, DateTime, JSON
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from app.db.base import Base  # Importing the Base class we created earlier
+
 
 class User(Base):
     __tablename__ = "users"
@@ -18,6 +30,7 @@ class User(Base):
     reviews = relationship("Review", back_populates="user")
     preferences = relationship("UserPreference", back_populates="user", uselist=False)
 
+
 class Book(Base):
     __tablename__ = "books"
 
@@ -25,17 +38,18 @@ class Book(Base):
     title = Column(String, index=True, nullable=False)
     author = Column(String, index=True, nullable=False)
     isbn = Column(String, unique=True, index=True)
-    
+
     # Content Layer (Assignment Requirement: Manage actual files)
     file_path = Column(String, nullable=False)  # Path to local file or S3 key
-    file_type = Column(String, default="pdf")   # pdf or txt
-    
+    file_type = Column(String, default="pdf")  # pdf or txt
+
     # Intelligence Layer (Assignment Requirement: AI Summaries)
-    summary = Column(Text, nullable=True)       # AI generated summary
-    sentiment_score = Column(Float, default=0.0) # Rolling avg of review sentiments
-    
+    summary = Column(Text, nullable=True)  # AI generated summary
+    sentiment_score = Column(Float, default=0.0)  # Rolling avg of review sentiments
+
     borrows = relationship("Borrow", back_populates="book")
     reviews = relationship("Review", back_populates="book")
+
 
 class Borrow(Base):
     __tablename__ = "borrows"
@@ -48,6 +62,7 @@ class Borrow(Base):
 
     user = relationship("User", back_populates="borrows")
     book = relationship("Book", back_populates="borrows")
+
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -63,21 +78,23 @@ class Review(Base):
     user = relationship("User", back_populates="reviews")
     book = relationship("Book", back_populates="reviews")
 
+
 class UserPreference(Base):
     """
     Design Decision for ML:
     Storing preferences as JSON allows us to be flexible with our ML algorithm.
-    We can store explicit tags (e.g., {"genres": ["sci-fi"]}) 
+    We can store explicit tags (e.g., {"genres": ["sci-fi"]})
     or implicit vectors (e.g., {"embedding": [0.12, -0.4, ...]})
     without migrating the DB.
     """
+
     __tablename__ = "user_preferences"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    topic_tag = Column(String) # e.g., "Fiction", "Science", "History"
+    topic_tag = Column(String)  # e.g., "Fiction", "Science", "History"
     # Flexible schema for ML data using JSON
     # Note: We use JSON instead of JSONB for compatibility with all Postgres versions
-    data = Column(JSON, default={}) 
-    
+    data = Column(JSON, default={})
+
     user = relationship("User", back_populates="preferences")
