@@ -48,18 +48,18 @@ services:
     build: .
     container_name: lumina_api
     restart: on-failure
-    # THIS LINE LOADS YOUR SECRET_KEY AND OTHER VARS INTO THE CONTAINER
-    env_file: .env 
     command: sh ./entrypoint.sh
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     environment:
-      # Constructing the URL dynamically using encoded credentials from .env
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Postgres@12
+      - POSTGRES_DB=lumina_db
+      - POSTGRES_SERVER=db
       - DATABASE_URL=postgresql://postgres:Postgres%4012@db:5432/lumina_db
       - OLLAMA_BASE_URL=http://ollama:11434
-      - POSTGRES_SERVER=db
     depends_on:
       db:
         condition: service_healthy
