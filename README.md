@@ -15,7 +15,7 @@ The application is fully containerized and designed to start with a single comma
 1. **Clone the repository:**
 
 
--  git clone <your-repository-url>
+-  git clone <your-repository-url>](https://github.com/maheshvg2002/lumina-ai-library-api.git)
 
 -  cd luminalib
 
