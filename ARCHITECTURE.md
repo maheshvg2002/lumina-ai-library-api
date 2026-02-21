@@ -49,6 +49,6 @@ The architecture supports swapping components with minimal friction. This is ach
 ## 6. Documented Assumptions
 The following assumptions were made during architecture and development:
 
-1. **Hardware Constraints & Model Selection:** The Docker Compose setup is configured to pull and run the `llama3` model via Ollama. This choice was made to ensure high-quality, nuanced text generation for book summaries and sentiment analysis. It is assumed the evaluation environment has sufficient resources (approx. 8GB+ RAM) to run this model locally. However, thanks to the abstracted architecture, this can be instantly swapped to a lighter model (such as `tinyllama`) in the `docker-compose.yml` if hardware limits arise during evaluation.
+1. **Hardware Constraints & Model Selection:** The Docker Compose setup is configured to pull and run the `llama3` model via Ollama. This choice was made to ensure high-quality, nuanced text generation for book summaries and sentiment analysis. It is assumed the evaluation environment has sufficient resources (approx. 8GB+ RAM) to run this model locally.
 2. **Storage:** Local volume mapping for book ingestion satisfies the "abstracted storage" requirement for this environment, prioritizing a seamless, one-command `docker-compose up` experience.
 3. **Review Policy Constraints:** A strict database constraint assumes a user cannot review a book they do not have a registered `borrow` record for, ensuring sentiment analysis is driven by actual readers.
