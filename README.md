@@ -13,10 +13,11 @@ LuminaLib is a next-generation, content-aware library system built for the JKTec
 The application is fully containerized and designed to start with a single command. The `docker-compose.yml` handles the API, PostgreSQL database, and the local LLM service seamlessly.
 
 1. **Clone the repository:**
-   \`\`\`
-   git clone <your-repository-url>
+
+
+-  git clone <your-repository-url>
    cd luminalib
-   \`\`\`
+
 
 2. **Start the application:**
    \`\`\`
