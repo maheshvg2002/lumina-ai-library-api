@@ -8,13 +8,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     environment:
       # These pull directly from your .env file
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Postgres@12
+      - POSTGRES_DB=lumina_db
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lumina_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -58,7 +58,7 @@ services:
       - "8000:8000"
     environment:
       # Constructing the URL dynamically using encoded credentials from .env
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://postgres:Postgres%4012@db:5432/lumina_db
       - OLLAMA_BASE_URL=http://ollama:11434
       - POSTGRES_SERVER=db
     depends_on:

@@ -10,5 +10,4 @@ def get_llm_service() -> LLMProvider:
 
 def get_storage_service() -> StorageProvider:
     """Injects the current Storage provider (Local Disk)."""
-    # If JKTech ever asks you to use AWS S3, you would just return S3Storage() here!
     return LocalDiskStorage()

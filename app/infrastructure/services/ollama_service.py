@@ -1,10 +1,8 @@
 import os
-import traceback
 
 import httpx
 from dotenv import load_dotenv
 
-from app.core.config import settings
 from app.core.interfaces import LLMProvider
 
 load_dotenv()
@@ -12,14 +10,12 @@ load_dotenv()
 
 class OllamaService(LLMProvider):
     def __init__(self):
-        # Grabs the URL from .env locally, or from docker-compose when contanerized
         self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
     # --- TOOL 1: SUMMARIZATION (For Books) ---
     async def generate_summary(self, text: str) -> str:
         prompt = f"Summarize this in 3 sentences: {text[:2000]}"
 
-        # We keep the 600s timeout because your machine needs it
         async with httpx.AsyncClient(timeout=None) as client:
             try:
                 response = await client.post(
@@ -39,7 +35,6 @@ class OllamaService(LLMProvider):
             f"Review: {review_text}"
         )
 
-        # Sentiment is faster, so 30-60 seconds is usually enough
         async with httpx.AsyncClient(timeout=None) as client:
             try:
                 response = await client.post(
@@ -48,10 +43,8 @@ class OllamaService(LLMProvider):
                 )
                 response.raise_for_status()
 
-                # Clean up the answer (remove extra spaces or punctuation)
                 sentiment = response.json().get("response", "Unknown").strip()
 
-                # Simple fallback if AI blabbers
                 if "positive" in sentiment.lower():
                     return "Positive"
                 if "negative" in sentiment.lower():

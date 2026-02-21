@@ -1,4 +1,3 @@
-# app/domain/schemas.py
 from datetime import datetime
 from typing import Optional
 
@@ -23,7 +22,7 @@ class UserResponse(UserBase):
     is_active: bool
 
     class Config:
-        from_attributes = True  # Allows Pydantic to read SQLAlchemy models
+        from_attributes = True
 
 
 # 4. Token Schema (for Login response)

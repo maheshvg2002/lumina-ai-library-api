@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.endpoints.auth import get_current_user
 
-# --- CLEAN ARCHITECTURE IMPORTS ---
 from app.core.interfaces import LLMProvider, StorageProvider
 from app.db.session import get_db
 from app.domain import schemas
@@ -24,7 +23,6 @@ from app.models.sql_models import Book, User
 router = APIRouter()
 
 
-# --- BACKGROUND TASK ---
 async def process_ai_summary(book_id: int, file_path: str, db_gen, llm: LLMProvider):
     # 1. Read the uploaded file
     try:
@@ -56,7 +54,6 @@ async def upload_book(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    # --- INJECTING OUR SERVICES ---
     storage: StorageProvider = Depends(get_storage_service),
     llm: LLMProvider = Depends(get_llm_service),
 ):
@@ -67,23 +64,20 @@ async def upload_book(
     file_extension = Path(file.filename).suffix
     unique_filename = f"{uuid.uuid4()}{file_extension}"
 
-    # Read the file bytes into memory
     content = await file.read()
 
-    # Delegate the actual saving to the injected Storage Provider
     file_path = await storage.save_file(unique_filename, content)
 
     new_book = Book(
         title=title,
         author=author,
         isbn=isbn,
-        file_path=str(file_path),  # We get the path back from the storage service
+        file_path=str(file_path),
     )
     db.add(new_book)
     db.commit()
     db.refresh(new_book)
 
-    # Trigger the AI Summary in the background, passing the injected LLM
     background_tasks.add_task(
         process_ai_summary, new_book.id, str(file_path), get_db, llm
     )

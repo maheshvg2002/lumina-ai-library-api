@@ -1,6 +1,7 @@
 # app/core/config.py
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "LuminaLib"
     VERSION: str = "1.0.0"
@@ -18,7 +19,7 @@ class Settings(BaseSettings):
 
     # --- SECURITY ---
     # No default value! Forces the app to safely load it from .env
-    SECRET_KEY: str 
+    SECRET_KEY: str = "dev_fallback_secret_key_for_testing_only"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
@@ -28,5 +29,6 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+
 
 settings = Settings()

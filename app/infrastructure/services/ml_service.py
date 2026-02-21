@@ -5,8 +5,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 class RecommendationEngine:
+    """
+    Engine to generate book recommendations using TF-IDF vectorization
+    and Cosine Similarity.
+    """
+
     def __init__(self):
-        # TF-IDF turns text (book summaries) into mathematical vectors
         self.vectorizer = TfidfVectorizer(stop_words="english")
 
     def get_content_based_recommendations(
@@ -14,35 +18,35 @@ class RecommendationEngine:
         user_liked_summaries: List[str],
         all_other_books: List[dict],  # dict containing id, title, summary
     ) -> List[dict]:
+        """
+        Calculates similarity scores between a user profile and available books.
+        """
 
-        # If the user hasn't read anything, or books have no summaries, we can't run the ML
         if not user_liked_summaries or not all_other_books:
             return []
 
-        # Combine the user's liked text into one giant "Profile" string
+        # Construct User Profile by merging liked content
         user_profile_text = " ".join(user_liked_summaries)
 
-        # Prepare the data for the ML model
         book_ids = []
         documents = [user_profile_text]  # Index 0 is the User Profile
 
         for book in all_other_books:
-            # Only include books that actually have an AI summary
             if book["summary"] and book["summary"] != "Pending...":
                 book_ids.append(book["id"])
                 documents.append(book["summary"])
 
         if len(documents) <= 1:
-            return []  # No valid books to compare against
+            return []
 
-        # 1. Transform text into ML vectors
+        # 1. Vectorization: Convert text documents into numerical feature vectors
         tfidf_matrix = self.vectorizer.fit_transform(documents)
 
-        # 2. Calculate Cosine Similarity between the User Profile (index 0) and all Books
-        # This tells us mathematically how similar the text is (0.0 to 1.0)
+        # 2. Similarity Calculation: Measure the angle between vectors
+        # (Score 1.0 means identical content, 0.0 means completely different)
         cosine_sim = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:]).flatten()
 
-        # 3. Attach scores to books and sort them
+        # 3. Ranking: Map scores back to IDs and sort by relevance
         scored_books = []
         for idx, score in enumerate(cosine_sim):
             scored_books.append({"book_id": book_ids[idx], "ml_score": float(score)})

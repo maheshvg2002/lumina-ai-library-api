@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db.base import Base  # Importing the Base class we created earlier
+from app.db.base import Base
 
 
 class User(Base):
@@ -25,7 +25,6 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     borrows = relationship("Borrow", back_populates="user")
     reviews = relationship("Review", back_populates="user")
     preferences = relationship("UserPreference", back_populates="user", uselist=False)
@@ -45,7 +44,7 @@ class Book(Base):
 
     # Intelligence Layer (Assignment Requirement: AI Summaries)
     summary = Column(Text, nullable=True)  # AI generated summary
-    sentiment_score = Column(Float, default=0.0)  # Rolling avg of review sentiments
+    sentiment_score = Column(Float, default=0.0)
 
     borrows = relationship("Borrow", back_populates="book")
     reviews = relationship("Review", back_populates="book")
@@ -93,7 +92,6 @@ class UserPreference(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
     topic_tag = Column(String)  # e.g., "Fiction", "Science", "History"
-    # Flexible schema for ML data using JSON
     # Note: We use JSON instead of JSONB for compatibility with all Postgres versions
     data = Column(JSON, default={})
 

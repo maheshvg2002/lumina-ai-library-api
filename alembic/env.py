@@ -91,7 +91,6 @@ from app.core.config import settings
 from app.db.base import Base
 
 # We must import the models so they get registered with Base
-from app.models import sql_models
 
 # ---------------------------------------------------------
 

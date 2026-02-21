@@ -1,13 +1,12 @@
 # app/core/security.py
 from datetime import datetime, timedelta
-from typing import Optional, Union
+from typing import Optional
 
 from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Setup password hashing (Bcrypt)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 

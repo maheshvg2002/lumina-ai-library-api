@@ -6,7 +6,6 @@ from app.api.v1.endpoints import auth, books, interactions  # NEW
 from app.core.config import settings
 from app.db.session import get_db
 
-# 1. Initialize the API
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
@@ -14,15 +13,13 @@ app = FastAPI(
 )
 
 
-# 3. Root / Health Check Endpoint
-@app.get("/")
+@app.get("/", tags=["Health"])
 def health_check(db: Session = Depends(get_db)):
     """
     Root endpoint to test if the API is running and
     can connect to the database.
     """
     try:
-        # Attempt a simple SQL query to verify connection
         db.execute(text("SELECT 1"))
         return {
             "status": "healthy",
@@ -31,12 +28,12 @@ def health_check(db: Session = Depends(get_db)):
             "message": "System is ready for requests.",
         }
     except Exception as e:
-        # If DB is down, return a 500 error with details
         raise HTTPException(
             status_code=500, detail=f"Database connection failed: {str(e)}"
         )
 
 
+# Routers
 app.include_router(
     auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"]
 )
@@ -47,7 +44,6 @@ app.include_router(
     tags=["Interactions"],
 )
 
-# 4. (Optional) Run directly for debugging
 if __name__ == "__main__":
     import uvicorn
 
