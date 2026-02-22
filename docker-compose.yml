@@ -41,7 +41,7 @@ services:
       ollama:
         condition: service_healthy
     command: >
-      sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"tinyllama\"}'"
+      sh -c "curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"llama3\"}'"
 
   # 4. The API (FastAPI)
   api:

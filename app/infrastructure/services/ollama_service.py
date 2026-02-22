@@ -1,12 +1,9 @@
 import os
-
 import httpx
 from dotenv import load_dotenv
-
 from app.core.interfaces import LLMProvider
 
 load_dotenv()
-
 
 class OllamaService(LLMProvider):
     def __init__(self):
@@ -14,32 +11,45 @@ class OllamaService(LLMProvider):
 
     # --- TOOL 1: SUMMARIZATION (For Books) ---
     async def generate_summary(self, text: str) -> str:
-        prompt = f"Summarize this in 3 sentences: {text[:2000]}"
+        prompt = f"""You are an expert library assistant system. 
+                 Your task is to provide a concise, engaging summary of the provided book text.
 
+                 STRICT CONSTRAINTS:
+                 1. You MUST respond in English.
+                 2. The summary must be exactly 3 sentences long.
+                 3. Do not include any conversational filler (e.g., "Here is the summary:").
+
+                 Book Text:
+                 {text[:2000]}
+                 """
         async with httpx.AsyncClient(timeout=None) as client:
             try:
                 response = await client.post(
                     f"{self.base_url}/api/generate",
-                    json={"model": "tinyllama", "prompt": prompt, "stream": False},
+                    json={"model": "llama3", "prompt": prompt, "stream": False},
                 )
                 response.raise_for_status()
-                return response.json().get("response", "No response key")
+                return response.json().get("response", "No response key").strip()
             except Exception as e:
                 return f"Error: {repr(e)}"
 
     # --- TOOL 2: SENTIMENT ANALYSIS (For Reviews) ---
     async def analyze_sentiment(self, review_text: str) -> str:
-        prompt = (
-            f"Analyze the sentiment of the following book review. "
-            f"Reply with ONLY one word: 'Positive', 'Negative', or 'Neutral'.\n\n"
-            f"Review: {review_text}"
-        )
+        prompt = f"""You are an automated sentiment analysis pipeline.
+                 Classify the sentiment of the following book review.
 
+                 STRICT CONSTRAINTS:
+                 - Reply with ONLY ONE WORD from this list: [Positive, Negative, Neutral].
+                 - Do not add punctuation.
+                 - Do not explain your reasoning.
+
+                 Review: {review_text}
+                """
         async with httpx.AsyncClient(timeout=None) as client:
             try:
                 response = await client.post(
                     f"{self.base_url}/api/generate",
-                    json={"model": "tinyllama", "prompt": prompt, "stream": False},
+                    json={"model": "llama3", "prompt": prompt, "stream": False},
                 )
                 response.raise_for_status()
 
